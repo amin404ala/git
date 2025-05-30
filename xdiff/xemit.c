@@ -39,8 +39,8 @@ extern i32 xdl_format_hunk_hdr(usize s1, usize c1, usize s2, usize c2,
 			       u8 const* func, usize funclen,
 			       struct xdemitcb *ecb);
 
-static int xdl_emit_hunk_hdr(long s1, long c1, long s2, long c2,
-		      const char *func, long funclen,
+static i32 xdl_emit_hunk_hdr(usize s1, usize c1, usize s2, usize c2,
+		      u8 const* func, usize funclen,
 		      struct xdemitcb *ecb) {
 	if (!ecb->out_hunk) {
 		return xdl_format_hunk_hdr(s1, c1, s2, c2, func, funclen, ecb);
