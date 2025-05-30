@@ -37,6 +37,11 @@ void ivec_zero(void* self, usize capacity) {
 	this->ptr = xcalloc(this->capacity, this->element_size);
 }
 
+void ivec_clear(void* self) {
+	rawivec_t *this = self;
+	this->length = 0;
+}
+
 void ivec_reserve_exact(void* self, usize additional) {
 	rawivec_t *this = self;
 	usize new_capacity = this->capacity + additional;

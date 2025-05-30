@@ -38,6 +38,7 @@ DEFINE_IVEC_TYPE(isize, isize);
 
 void ivec_init(void* self, usize element_size);
 void ivec_zero(void* self, usize capacity);
+void ivec_clear(void* self);
 void ivec_reserve_exact(void* self, usize additional);
 void ivec_reserve(void* self, usize additional);
 void ivec_shrink_to_fit(void* self);
