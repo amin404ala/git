@@ -62,7 +62,23 @@ pub(crate) struct xdemitconf {
     pub(crate) flags: u64,
     pub(crate) find_func: *const find_func_t,
     pub(crate) find_func_priv: *mut libc::c_void,
-    pub(crate) hunk_func: *const std::ffi::c_void, // xdl_emit_hunk_consume_func_t,
+    hunk_func: *const xdl_emit_hunk_consume_func_t,
+}
+
+
+impl xdemitconf {
+    
+    pub(crate) fn is_hunk_func_null(&self) -> bool {
+        self.hunk_func.is_null()
+    }
+    
+    pub(crate) unsafe fn invoke_hunk_func(&self, start_a: isize, count_a: isize, start_b: isize, count_b: isize, cb_data: *mut libc::c_void) -> i32 {
+        if self.hunk_func.is_null() {
+            panic!("null pointer");
+        }
+        let func_ptr: xdl_emit_hunk_consume_func_t = std::mem::transmute(self.hunk_func);
+        func_ptr(start_a, count_a, start_b, count_b, cb_data)
+    }
 }
 
 

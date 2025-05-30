@@ -1510,8 +1510,7 @@ unsafe extern "C" fn xdl_call_hunk_func(_: *mut xdpair, xscr: *mut xdchange, ecb
 		if xch.is_null() {
 			break;
 		}
-		let func_ptr: xdl_emit_hunk_consume_func_t = std::mem::transmute((*xecfg).hunk_func);
-		if func_ptr((*xch).i1, (*xche).i1 + (*xche).chg1 - (*xch).i1,
+		if (*xecfg).invoke_hunk_func((*xch).i1, (*xche).i1 + (*xche).chg1 - (*xch).i1,
 							 (*xch).i2, (*xche).i2 + (*xche).chg2 - (*xch).i2,
 							 (*ecb).private) < 0 {
 			return -1;
@@ -1535,7 +1534,7 @@ pub(crate) unsafe extern "C" fn xdl_diff(mf1: *const mmfile, mf2: *const mmfile,
 	let mut xscr: *mut xdchange = std::ptr::null_mut();
 
 	let mut two_way = xd2way::default();
-	let ef: emit_func_t = if !(*xecfg).hunk_func.is_null() {
+	let ef: emit_func_t = if !(*xecfg).is_hunk_func_null() {
 		xdl_call_hunk_func
 	} else {
 		xdl_emit_diff
