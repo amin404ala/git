@@ -66,8 +66,7 @@ unsafe extern "C" fn xdl_format_hunk_hdr(
 		size: builder.len() as libc::c_long,
 	};
 	
-	let func_ptr: xdemitcb_out_line_func = std::mem::transmute(ecb.out_line);
-	if func_ptr(ecb.private, &mut mb, 1) < 0 {
+	if ecb.invoke_out_line(&mut mb, 1) < 0 {
 		return -1;
 	}
 	

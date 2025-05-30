@@ -181,8 +181,39 @@ pub(crate) type xdemitcb_out_line_func = unsafe extern "C" fn(p0: *mut libc::c_v
 #[repr(C)]
 pub(crate) struct xdemitcb {
 	pub(crate) private: *mut libc::c_void,
-    pub(crate) out_hunk: *mut xdemitcb_out_hunk_func,
-    pub(crate) out_line: *mut xdemitcb_out_line_func,
+    out_hunk: *mut xdemitcb_out_hunk_func,
+    out_line: *mut xdemitcb_out_line_func,
+}
+
+
+impl xdemitcb {
+    
+    pub(crate) fn is_out_hunk_null(&self) -> bool {
+        self.out_hunk.is_null()
+    }
+
+    pub(crate) fn is_out_line_null(&self) -> bool {
+        self.out_line.is_null()
+    }
+    
+    pub(crate) unsafe fn invoke_out_hunk(&self, old_begin: isize, old_nr: isize,
+                                         new_begin: isize, new_nr: isize,
+                                         func: *const u8, funclen: isize) -> i32 {
+        if self.out_hunk.is_null() {
+            panic!("null pointer");
+        }
+        let func_ptr: xdemitcb_out_hunk_func = std::mem::transmute(self.out_hunk);
+        func_ptr(self.private, old_begin, old_nr, new_begin, new_nr, func, funclen)
+    }
+
+    pub(crate) unsafe fn invoke_out_line(&self, p1: *mut mmbuffer, p2: i32) -> i32 {
+        if self.out_line.is_null() {
+            panic!("null pointer");
+        }
+        let func_ptr: xdemitcb_out_line_func = std::mem::transmute(self.out_line);
+        func_ptr(self.private, p1, p2)
+    }
+    
 }
 
 
