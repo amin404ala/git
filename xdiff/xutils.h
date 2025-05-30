@@ -26,8 +26,6 @@
 
 
 long xdl_bogosqrt(long n);
-int xdl_emit_diffrec(char const *rec, long size, char const *pre, long psize,
-		     struct xdemitcb *ecb);
 int xdl_blankline(const char *line, long size, long flags);
 extern bool xdl_line_equal(u8 const* line1, usize size1, u8 const* line2, usize size2, u64 flags);
 u64 xdl_line_hash(u8 const* line, usize size, u64 flags);

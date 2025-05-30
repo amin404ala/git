@@ -23,11 +23,32 @@
 #include "xinclude.h"
 
 
+static i32 xdl_emit_diffrec(struct xrecord *rec, struct xrecord *pre, struct xdemitcb *ecb) {
+	usize i = 2;
+	mmbuffer_t mb[3];
+
+	mb[0].ptr = (char *) pre->ptr;
+	mb[0].size = (long) pre->size;
+	mb[1].ptr = (char *) rec->ptr;
+	mb[1].size = (long) rec->size;
+	if (rec->size > 0 && rec->ptr[rec->size - 1] != '\n') {
+		mb[2].ptr = (char *) "\n\\ No newline at end of file\n";
+		mb[2].size = (long) strlen(mb[2].ptr);
+		i++;
+	}
+	if (ecb->out_line(ecb->priv, mb, (i32) i) < 0) {
+		return -1;
+	}
+
+	return 0;
+}
+
+
 static int xdl_emit_record(struct xd_file_context *ctx, long ri, char const *pre, struct xdemitcb *ecb) {
 	struct xrecord *record = &ctx->record->ptr[ri];
-	long psize = strlen(pre);
+	struct xrecord pre_rec = {.ptr = (u8 const*) pre, .size = strlen(pre)};
 
-	if (xdl_emit_diffrec(record->ptr, record->size, pre, psize, ecb) < 0) {
+	if (xdl_emit_diffrec(record, &pre_rec, ecb) < 0) {
 		return -1;
 	}
 
