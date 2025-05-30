@@ -35,51 +35,9 @@ extern void append_i64(struct ivec_u8 *builder, i64 val);
 
 extern usize xdl_num_out(u8* out, i64 val);
 
-static i32 xdl_format_hunk_hdr(usize s1, usize c1, usize s2, usize c2,
+extern i32 xdl_format_hunk_hdr(usize s1, usize c1, usize s2, usize c2,
 			       u8 const* func, usize funclen,
-			       struct xdemitcb *ecb) {
-	mmbuffer_t mb;
-	struct ivec_u8 builder;
-	usize MAX_WIDTH = 128;
-
-	IVEC_INIT(builder);
-
-	append_string(&builder, "@@ -");
-
-
-	append_i64(&builder, c1 ? s1: s1 - 1);
-
-	if (c1 != 1) {
-		append_string(&builder, ",");
-		append_i64(&builder, c1);
-	}
-
-	append_string(&builder, " +");
-	append_i64(&builder, c2 ? s2: s2 - 1);
-
-	if (c2 != 1) {
-		append_string(&builder, ",");
-		append_i64(&builder, c2);
-	}
-
-	append_string(&builder, " @@");
-	if (func && funclen) {
-		append_string(&builder, " ");
-
-		usize write = XDL_MIN(funclen, MAX_WIDTH - builder.length - 1);
-		ivec_extend_from_slice(&builder, func, write);
-	}
-	u8 value = '\n';
-	ivec_push(&builder, &value);
-
-	mb.ptr = (char*) builder.ptr;
-	mb.size = (long) builder.length;
-	if (ecb->out_line(ecb->priv, &mb, 1) < 0) {
-		return -1;
-	}
-	ivec_free(&builder);
-	return 0;
-}
+			       struct xdemitcb *ecb);
 
 static int xdl_emit_hunk_hdr(long s1, long c1, long s2, long c2,
 		      const char *func, long funclen,

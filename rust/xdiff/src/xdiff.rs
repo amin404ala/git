@@ -159,14 +159,14 @@ old_begin: isize, old_nr: isize,
 new_begin: isize, new_nr: isize,
 func: *const u8, funclen: isize) -> i32;
 
-type xdemitcb_out_line_func = unsafe extern "C" fn(p0: *mut libc::c_void, p1: *mut mmbuffer, p2: i32) -> i32;
+pub(crate) type xdemitcb_out_line_func = unsafe extern "C" fn(p0: *mut libc::c_void, p1: *mut mmbuffer, p2: i32) -> i32;
 
 
 #[repr(C)]
 pub(crate) struct xdemitcb {
 	pub(crate) private: *mut libc::c_void,
-    out_hunk: *mut xdemitcb_out_hunk_func,
-    out_line: *mut xdemitcb_out_line_func,
+    pub(crate) out_hunk: *mut xdemitcb_out_hunk_func,
+    pub(crate) out_line: *mut xdemitcb_out_line_func,
 }
 
 

@@ -1,6 +1,6 @@
 use std::fmt::Write;
 use interop::ivec::IVec;
-use crate::xdiff::{xdemitcb, xdemitconf};
+use crate::xdiff::{mmbuffer, xdemitcb, xdemitcb_out_line_func, xdemitconf};
 use crate::xdiffi::xdchange;
 use crate::xtypes::xdpair;
 
@@ -28,6 +28,65 @@ unsafe extern "C" fn xdl_num_out(out: *mut u8, mut val: i64) -> usize {
 unsafe extern "C" fn append_i64(builder: *mut IVec<u8>, val: i64) {
 	let builder = IVec::from_raw_mut(builder);
 	write!(builder, "{}", val).unwrap();
+}
+
+
+#[no_mangle]
+unsafe extern "C" fn xdl_format_hunk_hdr(
+	s1: usize, c1: usize, s2: usize, c2: usize,
+	func: *const u8, funclen: usize,
+	ecb: *mut xdemitcb
+) -> i32 {
+	let ecb = &mut *ecb;
+	
+	let mut mb = mmbuffer {
+		ptr: std::ptr::null_mut(),
+		size: 0,
+	};
+	
+	let mut builder = IVec::<u8>::new();
+	const MAX_WIDTH: usize = 128;
+	
+	write!(builder, "@@ -").unwrap();
+	write!(builder, "{}", if c1 != 0 { s1  } else { s1 - 1 }).unwrap();
+
+	if (c1 != 1) {
+		write!(builder, ",").unwrap();
+		write!(builder, "{}", c1).unwrap();
+	}
+	
+	write!(builder, " +").unwrap();
+	write!(builder, "{}", if c2 != 0 { s2 } else { s2 - 1 }).unwrap();
+
+	if (c2 != 1) {
+		write!(builder, ",").unwrap();
+		write!(builder, "{}", c2).unwrap();
+	}
+	
+	write!(builder, " @@").unwrap();
+	if !func.is_null() && funclen != 0 {
+		write!(builder, " ").unwrap();
+
+		let slice = std::slice::from_raw_parts(func, funclen);
+		let write = std::cmp::min(funclen, MAX_WIDTH - builder.len() - 1);
+		builder.extend_from_slice(&slice[..write]);
+	}
+	builder.push(b'\n');
+
+	mb.ptr = builder.as_ptr() as *mut libc::c_char;
+	mb.size = builder.len() as libc::c_long;
+	
+	let mut mb = mmbuffer {
+		ptr: builder.as_ptr() as *const libc::c_char,
+		size: builder.len() as libc::c_long,
+	};
+	
+	let func_ptr: xdemitcb_out_line_func = std::mem::transmute(ecb.out_line);
+	if func_ptr(ecb.private, &mut mb, 1) < 0 {
+		return -1;
+	}
+	
+	0
 }
 
 
