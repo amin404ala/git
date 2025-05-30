@@ -6,6 +6,24 @@ pub(crate) type emit_func_t = unsafe extern "C" fn(pair: *mut xdpair, xscr: *mut
 			   xecfg: *const xdemitconf) -> i32;
 
 
+
+/// # Safety
+///
+/// The caller must ensure that `out` has at least 21 bytes available.
+/// 21 because -2**63 as a string is 20 bytes + null byte.
+#[no_mangle]
+unsafe extern "C" fn xdl_num_out(out: *mut u8, mut val: i64) -> usize {
+	let t = val.to_string();
+	let raw = t.as_bytes();
+	let dst = unsafe { std::slice::from_raw_parts_mut(out, 21) };
+	dst[..raw.len()].copy_from_slice(raw);
+	dst[raw.len()..].fill(0);
+
+	raw.len()
+}
+
+
+
 /*
  * Starting at the passed change atom, find the latest change atom to be included
  * inside the differential hunk according to the specified configuration.
