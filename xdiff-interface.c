@@ -9,8 +9,6 @@
 #include "strbuf.h"
 #include "xdiff-interface.h"
 #include "xdiff/xtypes.h"
-#include "xdiff/xdiffi.h"
-#include "xdiff/xutils.h"
 
 struct xdiff_emit_state {
 	xdiff_emit_hunk_fn hunk_fn;

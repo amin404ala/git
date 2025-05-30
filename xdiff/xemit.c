@@ -22,6 +22,89 @@
 
 #include "xinclude.h"
 
+static int xdl_num_out(char *out, long val) {
+	char *ptr, *str = out;
+	char buf[32];
+
+	ptr = buf + sizeof(buf) - 1;
+	*ptr = '\0';
+	if (val < 0) {
+		*--ptr = '-';
+		val = -val;
+	}
+	for (; val && ptr > buf; val /= 10)
+		*--ptr = "0123456789"[val % 10];
+	if (*ptr)
+		for (; *ptr; ptr++, str++)
+			*str = *ptr;
+	else
+		*str++ = '0';
+	*str = '\0';
+
+	return str - out;
+}
+
+static int xdl_format_hunk_hdr(long s1, long c1, long s2, long c2,
+			       const char *func, long funclen,
+			       struct xdemitcb *ecb) {
+	int nb = 0;
+	mmbuffer_t mb;
+	char buf[128];
+
+	memcpy(buf, "@@ -", 4);
+	nb += 4;
+
+	nb += xdl_num_out(buf + nb, c1 ? s1: s1 - 1);
+
+	if (c1 != 1) {
+		memcpy(buf + nb, ",", 1);
+		nb += 1;
+
+		nb += xdl_num_out(buf + nb, c1);
+	}
+
+	memcpy(buf + nb, " +", 2);
+	nb += 2;
+
+	nb += xdl_num_out(buf + nb, c2 ? s2: s2 - 1);
+
+	if (c2 != 1) {
+		memcpy(buf + nb, ",", 1);
+		nb += 1;
+
+		nb += xdl_num_out(buf + nb, c2);
+	}
+
+	memcpy(buf + nb, " @@", 3);
+	nb += 3;
+	if (func && funclen) {
+		buf[nb++] = ' ';
+		if ((size_t)funclen > sizeof(buf) - nb - 1)
+			funclen = sizeof(buf) - nb - 1;
+		memcpy(buf + nb, func, funclen);
+		nb += funclen;
+	}
+	buf[nb++] = '\n';
+
+	mb.ptr = buf;
+	mb.size = nb;
+	if (ecb->out_line(ecb->priv, &mb, 1) < 0)
+		return -1;
+	return 0;
+}
+
+static int xdl_emit_hunk_hdr(long s1, long c1, long s2, long c2,
+		      const char *func, long funclen,
+		      struct xdemitcb *ecb) {
+	if (!ecb->out_hunk)
+		return xdl_format_hunk_hdr(s1, c1, s2, c2, func, funclen, ecb);
+	if (ecb->out_hunk(ecb->priv,
+			  c1 ? s1 : s1 - 1, c1,
+			  c2 ? s2 : s2 - 1, c2,
+			  func, funclen) < 0)
+		return -1;
+	return 0;
+}
 
 static i32 xdl_emit_diffrec(struct xrecord *rec, struct xrecord *pre, struct xdemitcb *ecb) {
 	usize i = 2;

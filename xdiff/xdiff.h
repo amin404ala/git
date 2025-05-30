@@ -157,6 +157,9 @@ struct xmparam {
 extern i32 xdl_merge(mmfile_t *orig, mmfile_t *mf1, mmfile_t *mf2,
 		struct xmparam const *xmp, mmbuffer_t *result);
 
+extern bool xdl_line_equal(u8 const* line1, usize size1, u8 const* line2, usize size2, u64 flags);
+extern u64 xdl_line_hash(u8 const* line, usize size, u64 flags);
+
 #ifdef __cplusplus
 }
 #endif /* #ifdef __cplusplus */

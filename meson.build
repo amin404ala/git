@@ -524,7 +524,6 @@ libgit_sources = [
   'xdiff-interface.c',
   'xdiff/ivec.c',
   'xdiff/xemit.c',
-  'xdiff/xutils.c',
 ]
 
 libgit_sources += custom_target(
