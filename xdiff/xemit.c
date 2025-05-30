@@ -77,6 +77,7 @@ static i32 xdl_format_hunk_hdr(usize s1, usize c1, usize s2, usize c2,
 	if (ecb->out_line(ecb->priv, &mb, 1) < 0) {
 		return -1;
 	}
+	ivec_free(&builder);
 	return 0;
 }
 
