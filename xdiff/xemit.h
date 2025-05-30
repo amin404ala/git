@@ -23,6 +23,12 @@
 #if !defined(XEMIT_H)
 #define XEMIT_H
 
+struct xdchange {
+	struct xdchange *next;
+	isize i1, i2;
+	isize chg1, chg2;
+	bool ignore;
+};
 
 typedef int (*emit_func_t)(struct xdpair *pair, struct xdchange *xscr, struct xdemitcb *ecb,
 			   struct xdemitconf const *xecfg);

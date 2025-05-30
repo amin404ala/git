@@ -26,7 +26,6 @@
 #include "../rust/header/types.h"
 #include "xdiff.h"
 #include "xtypes.h"
-#include "xdiffi.h"
 #include "xemit.h"
 
 
