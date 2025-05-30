@@ -1,3 +1,5 @@
+use std::fmt::Write;
+use interop::ivec::IVec;
 use crate::xdiff::{xdemitcb, xdemitconf};
 use crate::xdiffi::xdchange;
 use crate::xtypes::xdpair;
@@ -22,6 +24,11 @@ unsafe extern "C" fn xdl_num_out(out: *mut u8, mut val: i64) -> usize {
 	raw.len()
 }
 
+#[no_mangle]
+unsafe extern "C" fn append_i64(builder: *mut IVec<u8>, val: i64) {
+	let builder = IVec::from_raw_mut(builder);
+	write!(builder, "{}", val).unwrap();
+}
 
 
 /*

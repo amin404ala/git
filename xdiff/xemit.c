@@ -22,52 +22,58 @@
 
 #include "xinclude.h"
 
+struct func_line {
+	long len;
+	char buf[80];
+};
+
+static void append_string(struct ivec_u8 *builder, char const* string) {
+	ivec_extend_from_slice(builder, string, strlen(string));
+}
+
+extern void append_i64(struct ivec_u8 *builder, i64 val);
+
 extern usize xdl_num_out(u8* out, i64 val);
 
 static int xdl_format_hunk_hdr(long s1, long c1, long s2, long c2,
 			       const char *func, long funclen,
 			       struct xdemitcb *ecb) {
-	int nb = 0;
 	mmbuffer_t mb;
-	char buf[128];
+	struct ivec_u8 builder;
+	usize MAX_WIDTH = 128;
 
-	memcpy(buf, "@@ -", 4);
-	nb += 4;
+	IVEC_INIT(builder);
 
-	nb += xdl_num_out(buf + nb, c1 ? s1: s1 - 1);
+	append_string(&builder, "@@ -");
+
+
+	append_i64(&builder, c1 ? s1: s1 - 1);
 
 	if (c1 != 1) {
-		memcpy(buf + nb, ",", 1);
-		nb += 1;
-
-		nb += xdl_num_out(buf + nb, c1);
+		append_string(&builder, ",");
+		append_i64(&builder, c1);
 	}
 
-	memcpy(buf + nb, " +", 2);
-	nb += 2;
-
-	nb += xdl_num_out(buf + nb, c2 ? s2: s2 - 1);
+	append_string(&builder, " +");
+	append_i64(&builder, c2 ? s2: s2 - 1);
 
 	if (c2 != 1) {
-		memcpy(buf + nb, ",", 1);
-		nb += 1;
-
-		nb += xdl_num_out(buf + nb, c2);
+		append_string(&builder, ",");
+		append_i64(&builder, c2);
 	}
 
-	memcpy(buf + nb, " @@", 3);
-	nb += 3;
+	append_string(&builder, " @@");
 	if (func && funclen) {
-		buf[nb++] = ' ';
-		if ((size_t)funclen > sizeof(buf) - nb - 1)
-			funclen = sizeof(buf) - nb - 1;
-		memcpy(buf + nb, func, funclen);
-		nb += funclen;
-	}
-	buf[nb++] = '\n';
+		append_string(&builder, " ");
 
-	mb.ptr = buf;
-	mb.size = nb;
+		usize write = XDL_MIN(funclen, MAX_WIDTH - builder.length - 1);
+		ivec_extend_from_slice(&builder, func, write);
+	}
+	u8 value = '\n';
+	ivec_push(&builder, &value);
+
+	mb.ptr = (char*) builder.ptr;
+	mb.size = (long) builder.length;
 	if (ecb->out_line(ecb->priv, &mb, 1) < 0)
 		return -1;
 	return 0;
@@ -150,11 +156,6 @@ static int is_func_rec(struct xd_file_context *ctx, struct xdemitconf const *xec
 	char dummy[1];
 	return match_func_rec(ctx, xecfg, ri, dummy, sizeof(dummy)) >= 0;
 }
-
-struct func_line {
-	long len;
-	char buf[80];
-};
 
 static long get_func_line(struct xdpair *pair, struct xdemitconf const *xecfg,
 			  struct func_line *func_line, long start, long limit)

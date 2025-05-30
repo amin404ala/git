@@ -352,6 +352,23 @@ impl<T: Debug> Debug for IVec<T> {
     }
 }
 
+impl std::fmt::Write for IVec<u8> {
+    fn write_str(&mut self, s: &str) -> std::fmt::Result {
+        Ok(self.extend_from_slice(s.as_bytes()))
+    }
+}
+
+impl std::io::Write for IVec<u8> {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        self.extend_from_slice(buf);
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::panic;
