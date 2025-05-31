@@ -61,10 +61,7 @@ unsafe extern "C" fn xdl_format_hunk_hdr(
 	}
 	builder.push(b'\n');
 
-	let mut mb = mmbuffer {
-		ptr: builder.as_ptr() as *const libc::c_char,
-		size: builder.len() as libc::c_long,
-	};
+	let mut mb = mmbuffer::from_slice(builder.as_slice());
 	
 	if ecb.invoke_out_line(&mut mb, 1) < 0 {
 		return -1;
