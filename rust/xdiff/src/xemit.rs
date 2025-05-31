@@ -74,6 +74,26 @@ unsafe extern "C" fn xdl_format_hunk_hdr(
 }
 
 
+#[no_mangle]
+unsafe extern "C" fn xdl_emit_hunk_hdr(s1: usize, c1: usize, s2: usize, c2: usize,
+									   func: *const u8, funclen: usize,
+									   ecb: *mut xdemitcb) -> i32 {
+	let ecb = &mut *ecb;
+	if ecb.is_out_hunk_null() {
+		return xdl_format_hunk_hdr(s1, c1, s2, c2, func, funclen, ecb);
+	}
+	let old_begin = if c1 != 0 { s1 } else { s1 - 1 };
+	let new_begin = if c2 != 0 { s2 } else { s2 - 1 };
+	if ecb.invoke_out_hunk(old_begin as isize, c1 as isize,
+							new_begin as isize, c2 as isize,
+		func, funclen as isize) < 0 {
+		return -1;
+	}
+	
+	0
+}
+
+
 /*
  * Starting at the passed change atom, find the latest change atom to be included
  * inside the differential hunk according to the specified configuration.

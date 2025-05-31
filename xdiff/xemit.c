@@ -39,20 +39,9 @@ extern i32 xdl_format_hunk_hdr(usize s1, usize c1, usize s2, usize c2,
 			       u8 const* func, usize funclen,
 			       struct xdemitcb *ecb);
 
-static i32 xdl_emit_hunk_hdr(usize s1, usize c1, usize s2, usize c2,
+extern i32 xdl_emit_hunk_hdr(usize s1, usize c1, usize s2, usize c2,
 		      u8 const* func, usize funclen,
-		      struct xdemitcb *ecb) {
-	if (!ecb->out_hunk) {
-		return xdl_format_hunk_hdr(s1, c1, s2, c2, func, funclen, ecb);
-	}
-	if (ecb->out_hunk(ecb->priv,
-			  c1 ? s1 : s1 - 1, c1,
-			  c2 ? s2 : s2 - 1, c2,
-			  func, funclen) < 0) {
-		return -1;
-	}
-	return 0;
-}
+		      struct xdemitcb *ecb);
 
 static i32 xdl_emit_diffrec(struct xrecord *rec, struct xrecord *pre, struct xdemitcb *ecb) {
 	usize i = 2;
