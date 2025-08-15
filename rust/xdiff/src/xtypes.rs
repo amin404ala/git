@@ -286,8 +286,10 @@ impl xdpair {
     }
 
     pub fn equal_by_index(&self, i1: usize, i2: usize) -> bool {
-        let mph1 = unsafe { (*self.lhs.minimal_perfect_hash)[i1] };
-        let mph2 = unsafe { (*self.rhs.minimal_perfect_hash)[i2] };
+        let lhs = unsafe { &*self.lhs.minimal_perfect_hash };
+        let rhs = unsafe { &*self.rhs.minimal_perfect_hash };
+        let mph1 = lhs[i1];
+        let mph2 = rhs[i2];
         mph1 == mph2
     }
 
