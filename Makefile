@@ -932,7 +932,7 @@ EXTLIBS =
 GIT_BUILD_DIR := $(CURDIR)
 export GIT_BUILD_DIR
 
-RUST_CRATES :=
+RUST_CRATES := gitcore
 .PHONY: compile_rust rustclean
 
 WITH_RUST ?= true

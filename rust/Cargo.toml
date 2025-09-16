@@ -1,3 +1,5 @@
 [workspace]
-members = []
+members = [
+    "gitcore",
+]
 resolver = "2"
