@@ -3753,7 +3753,7 @@ static int read_one_dir(struct untracked_cache_dir **untracked_,
 	if (ud.untracked_nr)
 		ALLOC_ARRAY(ud.untracked, ud.untracked_nr);
 
-	ud.dirs_alloc = ud.dirs_nr = decode_varint(&data);
+	ud.dirs_alloc = ud.dirs_nr = (unsigned int)decode_varint(&data);
 	if (data > end)
 		return -1;
 	ALLOC_ARRAY(ud.dirs, ud.dirs_nr);
