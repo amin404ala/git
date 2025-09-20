@@ -1461,6 +1461,7 @@ BASIC_LDFLAGS =
 
 ifeq ($(WITH_RUST),true)
 BASIC_CFLAGS += -DWITH_RUST
+BASIC_CFLAGS += -fPIE
 endif
 # library flags
 ARFLAGS = rcs
