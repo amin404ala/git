@@ -1,8 +1,8 @@
 #[no_mangle]
-pub unsafe extern "C" fn decode_varint(bufp: *mut *const u8) -> usize {
+pub unsafe extern "C" fn decode_varint(bufp: *mut *const u8) -> u64 {
     let mut buf = *bufp;
     let mut c = *buf;
-    let mut val = usize::from(c & 127);
+    let mut val: u64 = (c & 127) as u64;
 
     buf = buf.add(1);
 
@@ -15,7 +15,7 @@ pub unsafe extern "C" fn decode_varint(bufp: *mut *const u8) -> usize {
         c = *buf;
         buf = buf.add(1);
 
-        val = (val << 7) + usize::from(c & 127);
+        val = (val << 7) + (c & 127) as u64;
     }
 
     *bufp = buf;
@@ -23,13 +23,13 @@ pub unsafe extern "C" fn decode_varint(bufp: *mut *const u8) -> usize {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn encode_varint(value: usize, buf: *mut u8) -> u8 {
-    let mut varint: [u8; 16] = [0; 16];
+pub unsafe extern "C" fn encode_varint(mut value: u64, buf: *mut u8) -> usize {
+    let mut varint = [0u8; 9];
     let mut pos = varint.len() - 1;
 
     varint[pos] = (value & 127) as u8;
 
-    let mut value = value >> 7;
+    value >>= 7;
     while value != 0 {
         pos -= 1;
         value -= 1;
@@ -41,7 +41,7 @@ pub unsafe extern "C" fn encode_varint(value: usize, buf: *mut u8) -> u8 {
         std::ptr::copy_nonoverlapping(varint.as_ptr().add(pos), buf, varint.len() - pos);
     }
 
-    (varint.len() - pos) as u8
+    varint.len() - pos
 }
 
 #[cfg(test)]
