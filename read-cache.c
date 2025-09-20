@@ -2656,7 +2656,7 @@ static int ce_write_entry(struct hashfile *f, struct cache_entry *ce,
 		hashwrite(f, padding, align_padding_size(size, len));
 	} else {
 		int common, to_remove;
-		uint8_t prefix_size;
+		size_t prefix_size;
 		unsigned char to_remove_vi[16];
 
 		for (common = 0;
@@ -2666,7 +2666,7 @@ static int ce_write_entry(struct hashfile *f, struct cache_entry *ce,
 		     common++)
 			; /* still matching */
 		to_remove = previous_name->len - common;
-		prefix_size = encode_varint(to_remove, to_remove_vi);
+		prefix_size = encode_varint((uint64_t)to_remove, to_remove_vi);
 
 		copy_cache_entry_to_ondisk(ondisk, ce);
 		hashwrite(f, ondisk, size);

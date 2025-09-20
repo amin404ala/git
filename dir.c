@@ -3579,9 +3579,9 @@ static void write_one_dir(struct untracked_cache_dir *untracked,
 	struct stat_data stat_data;
 	struct strbuf *out = &wd->out;
 	unsigned char intbuf[16];
-	unsigned int value;
-	uint8_t intlen;
-	int i = wd->index++;
+	uint64_t value;
+	size_t intlen;
+	size_t i = wd->index++;
 
 	/*
 	 * untracked_nr should be reset whenever valid is clear, but
@@ -3607,7 +3607,7 @@ static void write_one_dir(struct untracked_cache_dir *untracked,
 			   the_hash_algo->rawsz);
 	}
 
-	intlen = encode_varint(untracked->untracked_nr, intbuf);
+	intlen = encode_varint((uint64_t)untracked->untracked_nr, intbuf);
 	strbuf_add(out, intbuf, intlen);
 
 	/* skip non-recurse directories */
@@ -3633,7 +3633,7 @@ void write_untracked_extension(struct strbuf *out, struct untracked_cache *untra
 	struct ondisk_untracked_cache *ouc;
 	struct write_data wd;
 	unsigned char varbuf[16];
-	uint8_t varint_len;
+	size_t varint_len;
 	const unsigned hashsz = the_hash_algo->rawsz;
 
 	CALLOC_ARRAY(ouc, 1);
@@ -3641,7 +3641,7 @@ void write_untracked_extension(struct strbuf *out, struct untracked_cache *untra
 	stat_data_to_disk(&ouc->excludes_file_stat, &untracked->ss_excludes_file.stat);
 	ouc->dir_flags = htonl(untracked->dir_flags);
 
-	varint_len = encode_varint(untracked->ident.len, varbuf);
+	varint_len = encode_varint((uint64_t)untracked->ident.len, varbuf);
 	strbuf_add(out, varbuf, varint_len);
 	strbuf_addbuf(out, &untracked->ident);
 
@@ -3666,7 +3666,7 @@ void write_untracked_extension(struct strbuf *out, struct untracked_cache *untra
 	strbuf_init(&wd.sb_sha1, 1024);
 	write_one_dir(untracked->root, &wd);
 
-	varint_len = encode_varint(wd.index, varbuf);
+	varint_len = encode_varint((uint64_t)wd.index, varbuf);
 	strbuf_add(out, varbuf, varint_len);
 	strbuf_addbuf(out, &wd.out);
 	ewah_serialize_strbuf(wd.valid, out);

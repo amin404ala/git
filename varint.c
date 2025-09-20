@@ -1,7 +1,7 @@
 #include "git-compat-util.h"
 #include "varint.h"
 
-uint64_t decode_varint(const unsigned char **bufp)
+uint64_t decode_varint(const uint8_t **bufp)
 {
 	const unsigned char *buf = *bufp;
 	unsigned char c = *buf++;
@@ -17,7 +17,7 @@ uint64_t decode_varint(const unsigned char **bufp)
 	return val;
 }
 
-uint8_t encode_varint(uint64_t value, unsigned char *buf)
+size_t encode_varint(uint64_t value, uint8_t *buf)
 {
 	unsigned char varint[16];
 	unsigned pos = sizeof(varint) - 1;
