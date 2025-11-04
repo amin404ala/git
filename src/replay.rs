@@ -1,6 +1,6 @@
 // use std::os::raw::*;
 use std::ffi::*;
-use crate::bindings::{commit, commit_extra_header, commit_list, commit_list_insert, commit_tree_extended, find_commit_header, find_commit_subject, free, free_commit_extra_headers, free_commit_list, get_commit_output_encoding, object, object_id, parse_object, read_commit_extra_headers, repo_logmsg_reencode, repo_unuse_commit_buffer, repository, reset_ident_date, strbuf, strbuf_add, strbuf_release, strlen, the_repository, tree, xmemdupz};
+use crate::bindings::{commit, commit_extra_header, commit_list, commit_list_insert, commit_tree_extended, find_commit_header, find_commit_subject, free, free_commit_extra_headers, free_commit_list, get_commit_output_encoding, object, object_id, parse_object, read_commit_extra_headers, repo_logmsg_reencode, repo_unuse_commit_buffer, repository, reset_ident_date, strbuf, strbuf_add, strbuf_release, strbuf_slopbuf, strlen, the_repository, tree, xmemdupz};
 
 unsafe fn get_author(message: *const c_char) -> *mut c_char {
 	let mut len: usize = 0;
@@ -15,7 +15,8 @@ unsafe fn get_author(message: *const c_char) -> *mut c_char {
 	std::ptr::null_mut()
 }
 
-unsafe fn create_commit(repo: *mut repository, tree_: *mut tree, based_on: *mut commit, parent: *mut commit) -> *mut commit {
+#[no_mangle]
+pub unsafe extern "C" fn create_commit(repo: *mut repository, tree_: *mut tree, based_on: *mut commit, parent: *mut commit) -> *mut commit {
 
 	// struct object_id ret;
 	let mut ret: object_id = object_id{ hash: [0; 32], algo: 0 };
@@ -33,7 +34,7 @@ unsafe fn create_commit(repo: *mut repository, tree_: *mut tree, based_on: *mut 
 	let mut msg: strbuf = strbuf{
 		alloc: 0,
 		len: 0,
-		buf: std::ptr::null_mut(),
+		buf: [0u8; 0].as_ptr() as *mut c_char,
 	};
 	// const char *out_enc = get_commit_output_encoding();
 	let out_enc = get_commit_output_encoding();
@@ -53,7 +54,7 @@ unsafe fn create_commit(repo: *mut repository, tree_: *mut tree, based_on: *mut 
 	author = get_author(message);
 	reset_ident_date();
 	if (commit_tree_extended(msg.buf, msg.len, &(*tree_).object.oid, parents,
-				 &mut ret, author, std::ptr::null_mut(), sign_commit, extra) == 0) {
+				 &mut ret, author, std::ptr::null_mut(), sign_commit, extra) != 0) {
 		panic!("failed to write commit object");
 		// error(_("failed to write commit object"));
 		// goto out;

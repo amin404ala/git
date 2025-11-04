@@ -51,6 +51,12 @@ static char *get_author(const char *message)
 	return NULL;
 }
 
+#ifdef WITH_RUST
+extern struct commit *create_commit(struct repository *repo,
+				    struct tree *tree,
+				    struct commit *based_on,
+				    struct commit *parent);
+#else
 static struct commit *create_commit(struct repository *repo,
 				    struct tree *tree,
 				    struct commit *based_on,
@@ -91,6 +97,7 @@ out:
 	free(author);
 	return (struct commit *)obj;
 }
+#endif
 
 struct ref_info {
 	struct commit *onto;
