@@ -39,6 +39,13 @@ static struct commit *peel_committish(struct repository *repo, const char *name)
 						  OBJ_COMMIT);
 }
 
+#ifdef WITH_RUST
+extern struct commit *create_commit(struct repository *repo,
+				    struct tree *tree,
+				    struct commit *based_on,
+				    struct commit *parent);
+#else
+
 static char *get_author(const char *message)
 {
 	size_t len;
@@ -51,12 +58,6 @@ static char *get_author(const char *message)
 	return NULL;
 }
 
-#ifdef WITH_RUST
-extern struct commit *create_commit(struct repository *repo,
-				    struct tree *tree,
-				    struct commit *based_on,
-				    struct commit *parent);
-#else
 static struct commit *create_commit(struct repository *repo,
 				    struct tree *tree,
 				    struct commit *based_on,

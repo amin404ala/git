@@ -15,11 +15,32 @@ unsafe fn get_author(message: *const c_char) -> *mut c_char {
 	std::ptr::null_mut()
 }
 
+impl Default for object_id {
+	fn default() -> Self {
+		Self {
+			hash: [0; 32],
+			algo: 0
+		}
+	}
+}
+
+
+impl Default for strbuf {
+	fn default() -> Self {
+		Self {
+			alloc: 0,
+			len: 0,
+			buf: [0u8; 1].as_ptr() as *mut c_char,
+		}
+	}
+}
+
+
 #[no_mangle]
 pub unsafe extern "C" fn create_commit(repo: *mut repository, tree_: *mut tree, based_on: *mut commit, parent: *mut commit) -> *mut commit {
 
 	// struct object_id ret;
-	let mut ret: object_id = object_id{ hash: [0; 32], algo: 0 };
+	let mut ret: object_id = object_id::default();
 	// struct object *obj = NULL;
 	let mut obj: *mut object = std::ptr::null_mut();
 	// struct commit_list *parents = NULL;
@@ -31,11 +52,7 @@ pub unsafe extern "C" fn create_commit(repo: *mut repository, tree_: *mut tree, 
 	// struct commit_extra_header *extra = NULL;
 	let mut extra: *mut commit_extra_header = std::ptr::null_mut();
 	// struct strbuf msg = STRBUF_INIT;
-	let mut msg: strbuf = strbuf{
-		alloc: 0,
-		len: 0,
-		buf: [0u8; 0].as_ptr() as *mut c_char,
-	};
+	let mut msg: strbuf = strbuf::default();
 	// const char *out_enc = get_commit_output_encoding();
 	let out_enc = get_commit_output_encoding();
 	// const char *message = repo_logmsg_reencode(repo, based_on,
