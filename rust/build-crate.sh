@@ -3,7 +3,7 @@
 rustc -vV || exit $?
 cargo --version || exit $?
 
-dir_git_root=${0%/*}
+dir_git_root=${0%/*}/..
 dir_build=$1
 rust_build_profile=$2
 crate=$3
@@ -43,7 +43,8 @@ fi
 CARGO_TARGET_DIR=$dir_git_root/.build/rust/$crate
 export CARGO_TARGET_DIR
 
-cargo clean && pwd && USE_LINKING="false" cargo build -p $crate $rust_args
+CWD=$PWD
+cd $dir_git_root && cargo clean && pwd && USE_LINKING="false" cargo build -p $crate $rust_args; cd $CWD
 
 src=$CARGO_TARGET_DIR/$rust_build_profile/$libfile
 dst=$dir_build/$libfile
