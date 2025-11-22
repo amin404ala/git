@@ -45,7 +45,7 @@ fi
 
 echo "libfile=$libfile"
 
-CARGO_TARGET_DIR=$dir_git_root/.build/rust/$crate
+CARGO_TARGET_DIR=$dir_build/.build/rust/$crate
 export CARGO_TARGET_DIR
 
 cargo clean && pwd && USE_LINKING="false" cargo build -p $crate $rust_args
