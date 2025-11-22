@@ -4,6 +4,8 @@ rustc -vV || exit $?
 cargo --version || exit $?
 
 dir_git_root=${0%/*}/..
+cd $dir_git_root || exit $?
+dir_git_root=$PWD
 dir_build=$1
 rust_build_profile=$2
 crate=$3
@@ -40,11 +42,12 @@ if rustc -vV | grep windows-msvc; then
   PATH="$(echo $PATH | tr ':' '\n' | grep -Ev "^(/mingw64/bin|/usr/bin)$" | paste -sd: -):/mingw64/bin:/usr/bin"
 fi
 
+echo "libfile=$libfile"
+
 CARGO_TARGET_DIR=$dir_git_root/.build/rust/$crate
 export CARGO_TARGET_DIR
 
-CWD=$PWD
-cd $dir_git_root && cargo clean && pwd && USE_LINKING="false" cargo build -p $crate $rust_args; cd $CWD
+cargo clean && pwd && USE_LINKING="false" cargo build -p $crate $rust_args
 
 src=$CARGO_TARGET_DIR/$rust_build_profile/$libfile
 dst=$dir_build/$libfile
