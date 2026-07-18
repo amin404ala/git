@@ -20,7 +20,6 @@
 #include "../dir-iterator.h"
 #include "../lockfile.h"
 #include "../object.h"
-#include "../object-file.h"
 #include "../path.h"
 #include "../dir.h"
 #include "../chdir-notify.h"
@@ -2114,20 +2113,35 @@ static int commit_ref_update(struct files_ref_store *refs,
 	return 0;
 }
 
-#ifdef NO_SYMLINK_HEAD
+#if defined(NO_SYMLINK_HEAD) || defined(WITH_BREAKING_CHANGES)
 #define create_ref_symlink(a, b) (-1)
 #else
 static int create_ref_symlink(struct ref_lock *lock, const char *target)
 {
+	static int warn_once = 1;
+	char *ref_path;
 	int ret = -1;
 
-	char *ref_path = get_locked_file_path(&lock->lk);
+	ref_path = get_locked_file_path(&lock->lk);
 	unlink(ref_path);
 	ret = symlink(target, ref_path);
 	free(ref_path);
 
 	if (ret)
 		fprintf(stderr, "no symlink - falling back to symbolic ref\n");
+
+	if (warn_once)
+		warning(_("'core.preferSymlinkRefs=true' is nominated for removal.\n"
+			  "hint: The use of symbolic links for symbolic refs is deprecated\n"
+			  "hint: and will be removed in Git 3.0. The configuration that\n"
+			  "hint: tells Git to use them is thus going away. You can unset\n"
+			  "hint: it with:\n"
+			  "hint:\n"
+			  "hint:\tgit config unset core.preferSymlinkRefs\n"
+			  "hint:\n"
+			  "hint: Git will then use the textual symref format instead."));
+	warn_once = 0;
+
 	return ret;
 }
 #endif
@@ -3328,7 +3342,13 @@ static int files_transaction_finish(struct ref_store *ref_store,
 		 * next update. If not, we try and create a regular symref.
 		 */
 		if (update->new_target && refs->prefer_symlink_refs)
-			if (!create_ref_symlink(lock, update->new_target))
+			/*
+			 * By using the `NOT_CONSTANT()` trick, we can avoid
+			 * errors by `clang`'s `-Wunreachable` logic that would
+			 * report that the `continue` statement is not reachable
+			 * when `NO_SYMLINK_HEAD` is `#define`d.
+			 */
+			if (NOT_CONSTANT(!create_ref_symlink(lock, update->new_target)))
 				continue;
 
 		if (update->flags & REF_NEEDS_COMMIT) {
@@ -3970,8 +3990,6 @@ static int files_fsck_refs(struct ref_store *ref_store,
 		NULL,
 	};
 
-	if (o->verbose)
-		fprintf_ln(stderr, _("Checking references consistency"));
 	return files_fsck_refs_dir(ref_store, o, "refs", wt, fsck_refs_fn);
 }
 
